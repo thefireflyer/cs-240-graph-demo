@@ -1,0 +1,27 @@
+[package]
+name = "graph-demo"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+egui_extras = { version = "0.26.2", features = [
+    "file",
+    "syntect",
+    "svg",
+], git = "https://github.com/emilk/egui.git" }
+anyhow = "1.0.79"
+ron = "0.8.1"
+serde = { version = "1.0.197", features = ["derive"] }
+cs-240-library = { git = "https://github.com/thefireflyer/cs-240-library.git", version = "0.1.1" }
+egui = { version = "0.26.2", git = "https://github.com/emilk/egui.git" }
+eframe = { version = "0.26.2", features = [
+    "persistence",
+], git = "https://github.com/emilk/egui.git" }
+clap = { version = "4.5.1", features = ["derive"] }
+env_logger = "0.11.2"
+serde_yaml = "0.9.32"
+# emath = { version = "0.26.2", features = [
+#     "serde",
+# ], repository = "https://github.com/emilk/egui/tree/master/crates/emath" }
