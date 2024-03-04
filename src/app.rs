@@ -1,7 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-use egui::emath::TSTransform;
-use std::path::PathBuf;
+use egui::{
+    ahash::{HashMap, HashMapExt, HashSet, HashSetExt},
+    emath::TSTransform,
+    Color32, Pos2, Stroke, Vec2,
+};
+use std::{f32::consts::PI, path::PathBuf};
 
 use cs_240_library::data_structures::graphs::{undirected_graph::UndirectedGraph, Graph, GraphMut};
 
@@ -10,8 +14,8 @@ use cs_240_library::data_structures::graphs::{undirected_graph::UndirectedGraph,
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]
 pub struct App {
-    active: Option<GraphProject>,
-    recent: Vec<GraphProject>,
+    active: Option<PathBuf>,
+    recent: Vec<PathBuf>,
 
     #[serde(skip)]
     graph_data: Option<GraphData>,
@@ -48,15 +52,12 @@ impl App {
     //-----------------------------------------------------------------------//
 
     fn new_graph(&mut self) {
-        let mut graph = GraphData {
-            label: "Untitled Graph".to_owned(),
-            graph: UndirectedGraph::new(),
-        };
-
-        graph.graph.insert_node("test".to_owned(), vec![]);
-        graph
-            .graph
-            .insert_node("test2".to_owned(), vec!["test".to_string()]);
+        let mut graph = GraphData::new();
+        for i in 0..20 {
+            graph.add_node(i.to_string());
+        }
+        graph.add_connection("0".to_owned(), "2".to_owned());
+        graph.reposition();
 
         self.graph_data = Some(graph.clone());
         self.graph_text = serde_yaml::to_string(&graph).expect("test");
@@ -64,7 +65,7 @@ impl App {
 
     //-----------------------------------------------------------------------//
 
-    fn open_graph(&mut self, project: &GraphProject) {
+    fn open_graph(&mut self, project: &PathBuf) {
         todo!()
     }
 
@@ -72,7 +73,7 @@ impl App {
 
     fn save_graph(&mut self) {
         if let Some(project) = &self.active {
-            self.save_graph_to(project.path.clone());
+            self.save_graph_to(project.clone());
         } else {
             todo!()
         }
@@ -124,7 +125,10 @@ impl eframe::App for App {
 
                     ui.menu_button("Open Recent", |ui| {
                         for project in &self.recent.clone() {
-                            if ui.button(project.label.clone()).clicked() {
+                            if ui
+                                .button(project.file_name().unwrap().to_str().unwrap())
+                                .clicked()
+                            {
                                 self.open_graph(project);
                                 ui.close_menu();
                             }
@@ -160,31 +164,17 @@ impl eframe::App for App {
                 .default_width(320.0)
                 .min_width(240.0)
                 .show(ctx, |ui| {
-                    // ui.horizontal(|ui| {
-                    //     ui.label("Name: ");
-                    //     ui.text_edit_singleline(&mut graph.label);
-                    // });
-
-                    if ui.code_editor(&mut self.graph_text).changed() {
-                        self.update_graph();
-                    }
-
-                    // ui.add(egui::Slider::new(&mut self.value, 0.0..=10.0).text("value"));
-                    // if ui.button("Increment").clicked() {
-                    //     self.value += 1.0;
-                    // }
-
-                    // ui.separator();
-
-                    // ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                    //     bottom_text(ui);
-                    //     egui::warn_if_debug_build(ui);
-                    // });
+                    egui::ScrollArea::vertical().show(ui, |ui| {
+                        if ui.code_editor(&mut self.graph_text).changed() {
+                            // self.update_graph();
+                        }
+                    });
                 });
 
             egui::CentralPanel::default().show(ctx, |ui| {
                 ui.heading("Graph");
-                self.pan_zoom.ui(ui, &graph.graph);
+                self.pan_zoom
+                    .ui(ui, &graph.positions, &graph.adjacency_list);
             });
         } else {
             egui::CentralPanel::default().show(ctx, |ui| {
@@ -204,31 +194,55 @@ impl eframe::App for App {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-fn bottom_text(ui: &mut egui::Ui) {
-    ui.horizontal(|ui| {
-        ui.spacing_mut().item_spacing.x = 0.0;
-
-        ui.add(egui::github_link_file!(
-            "https://github.com/emilk/eframe_template/blob/master/",
-            "{GITHUB} Source code"
-        ));
-    });
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-#[derive(serde::Deserialize, serde::Serialize, Clone)]
-pub struct GraphProject {
-    label: String,
-    path: PathBuf,
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 #[derive(serde::Deserialize, serde::Serialize, Clone, Debug)]
 pub struct GraphData {
-    label: String,
-    graph: UndirectedGraph<String>,
+    adjacency_list: UndirectedGraph<String>,
+    positions: HashMap<String, Pos2>,
+    roots: HashSet<String>,
+}
+
+//---------------------------------------------------------------------------//
+
+impl GraphData {
+    pub fn new() -> Self {
+        GraphData {
+            adjacency_list: UndirectedGraph::new(),
+            positions: HashMap::new(),
+            roots: HashSet::new(),
+        }
+    }
+
+    pub fn add_node(&mut self, node: String) {
+        self.adjacency_list.insert_node(node.clone(), vec![]);
+        self.roots.insert(node.clone());
+        self.positions.insert(
+            node,
+            Pos2 {
+                x: 200.0 * f32::from(i16::try_from(self.roots.len()).unwrap()),
+                y: 100.0,
+            },
+        );
+    }
+
+    pub fn add_connection(&mut self, from: String, to: String) {
+        self.roots.remove(&from);
+        self.roots.remove(&to);
+        self.adjacency_list.insert_edge(from, to);
+    }
+
+    pub fn reposition(&mut self) {
+        let len = (typing(self.positions.len()) - 1.0);
+        for (i, (node, pos)) in self.positions.iter_mut().enumerate() {
+            *pos = Pos2 {
+                x: (2.0 * PI * (typing(i)) / len * 4.0).cos() * 6.0 * len + 300.0,
+                y: (2.0 * PI * typing(i) / len * 4.0).sin() * 6.0 * len + 300.0,
+            }
+        }
+    }
+}
+
+fn typing(x: usize) -> f32 {
+    f32::from(i16::try_from(x).unwrap())
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -242,7 +256,12 @@ pub struct PanZoom {
 ///////////////////////////////////////////////////////////////////////////////
 
 impl PanZoom {
-    fn ui(&mut self, ui: &mut egui::Ui, graph: &UndirectedGraph<String>) {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        graph: &HashMap<String, Pos2>,
+        adj: &UndirectedGraph<String>,
+    ) {
         ui.label(
             "Pan, zoom in, and zoom out with scrolling (see the plot demo for more instructions). \
                Double click on the background to reset.",
@@ -282,75 +301,33 @@ impl PanZoom {
             }
         }
 
-        for (i, (pos, callback)) in [
-            (
-                egui::Pos2::new(0.0, 0.0),
-                Box::new(|ui: &mut egui::Ui, _: &mut Self| ui.button("top left!"))
-                    as Box<dyn Fn(&mut egui::Ui, &mut Self) -> egui::Response>,
-            ),
-            (
-                egui::Pos2::new(0.0, 120.0),
-                Box::new(|ui: &mut egui::Ui, _| ui.button("bottom left?")),
-            ),
-            (
-                egui::Pos2::new(120.0, 120.0),
-                Box::new(|ui: &mut egui::Ui, _| ui.button("right bottom :D")),
-            ),
-            (
-                egui::Pos2::new(120.0, 0.0),
-                Box::new(|ui: &mut egui::Ui, _| ui.button("right top ):")),
-            ),
-            (
-                egui::Pos2::new(0.0, 0.0),
-                Box::new(|ui: &mut egui::Ui, _| ui.label("node 1")),
-            ),
-            (
-                egui::Pos2::new(60.0, 60.0),
-                Box::new(|ui, state| {
-                    use egui::epaint::*;
-                    let painter = ui.painter();
-                    painter.add(CircleShape::stroke(
-                        pos2(0.0, -10.0),
-                        16.0,
-                        Stroke::new(1.0, Color32::DARK_GRAY),
-                    ));
-
-                    // painter.add(CircleShape::filled(pos2(10.0, -10.0), 1.0, Color32::YELLOW));
-                    // painter.add(QuadraticBezierShape::from_points_stroke(
-                    //     [pos2(0.0, 0.0), pos2(5.0, 3.0), pos2(10.0, 0.0)],
-                    //     false,
-                    //     Color32::TRANSPARENT,
-                    //     Stroke::new(1.0, Color32::YELLOW),
-                    // ));
-
-                    // let img = egui::include_image!("../assets/node.svg");
-
-                    // if ui.image(img).clicked() {
-                    //     println!("!!");
-                    // }
-
-                    ui.add(egui::Slider::new(&mut state.drag_value, 0.0..=100.0).text("My value"))
-                }),
-            ),
-        ]
-        .into_iter()
-        .enumerate()
-        {
+        for (i, (node, pos)) in graph.iter().enumerate() {
             let id = egui::Area::new(id.with(("subarea", i)))
-                .default_pos(pos)
-                // Need to cover up the pan_zoom demo window,
-                // but may also cover over other windows.
+                .fixed_pos(*pos)
                 .order(egui::Order::Foreground)
                 .show(ui.ctx(), |ui| {
                     ui.set_clip_rect(transform.inverse() * rect);
                     egui::Frame::default()
-                        .rounding(egui::Rounding::same(4.0))
+                        .rounding(egui::Rounding::same(40.0))
                         .inner_margin(egui::Margin::same(8.0))
                         .stroke(ui.ctx().style().visuals.window_stroke)
                         .fill(ui.style().visuals.panel_fill)
                         .show(ui, |ui| {
                             ui.style_mut().wrap = Some(false);
-                            callback(ui, self)
+
+                            ui.label(node);
+
+                            let painter = ui.painter();
+
+                            for adj in adj.get_adj(&node) {
+                                painter.line_segment(
+                                    [
+                                        *graph.get(node).unwrap() + Vec2::new(8.0, 8.0),
+                                        *graph.get(&adj).unwrap() + Vec2::new(8.0, 8.0),
+                                    ],
+                                    Stroke::new(1.0, Color32::DARK_GRAY),
+                                );
+                            }
                         });
                 })
                 .response
