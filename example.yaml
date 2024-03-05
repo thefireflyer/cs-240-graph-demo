@@ -1,0 +1,17 @@
+adj:
+  Example node 3:
+  - Example node 1
+  node2: []
+  Node 4:
+  - Example node 2
+  - Node 5
+  node1: []
+  Node 6: []
+  Example node 1:
+  - Example node 3
+  - Example node 2
+  Node 5:
+  - Node 4
+  Example node 2:
+  - Node 4
+  - Example node 1
