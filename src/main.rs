@@ -9,13 +9,13 @@ use std::{
 use anyhow::Result;
 use app::App;
 use clap::{Args, Parser, Subcommand};
-use cli::{Config, ExampleArgs, FileArgs, InteractiveArgs, NewArgs};
+use cli::{Config, ExampleArgs, InteractiveArgs, NewArgs};
 use cs_240_library::data_structures::graphs::{
-    breadth_first_search, undirected_graph::UndirectedGraph, Graph, GraphMut,
+    breadth_first_search, directed_graph::DirectedGraph, undirected_graph::UndirectedGraph, Graph,
+    GraphMut,
 };
 
-use crate::cli::{EdgeArgs, NodeArgs};
-use interactive::interactive;
+use interactive::{interactive, StrGraph};
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -32,24 +32,23 @@ fn main() -> Result<()> {
 
     match args.command {
         cli::Commands::New(args) => new(args),
-        cli::Commands::Open(args) => open(args),
         cli::Commands::Example(args) => example(args),
         cli::Commands::Gui => Ok(gui()),
-        cli::Commands::OpenInteractive(args) => interactive(args),
+        cli::Commands::Open(args) => open(args),
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 fn new(args: NewArgs) -> Result<()> {
-    let mut graph: UndirectedGraph<&str> = UndirectedGraph::new();
+    let mut graph = DirectedGraph::new();
 
-    graph.insert_node("Example node 1", vec![]);
-    graph.insert_node("Example node 2", vec![]);
-    graph.insert_node("Example node 3", vec![]);
+    graph.insert_node("node-1", vec![]);
+    graph.insert_node("node-2", vec![]);
+    graph.insert_node("node-3", vec![]);
 
-    graph.insert_edge("Example node 1", "Example node 2");
-    graph.insert_edge("Example node 1", "Example node 3");
+    graph.insert_edge("node-1", "node-2");
+    graph.insert_edge("node-1", "node-3");
 
     fs::write(args.path, serde_yaml::to_string(&graph)?)?;
 
@@ -58,21 +57,11 @@ fn new(args: NewArgs) -> Result<()> {
 
 //---------------------------------------------------------------------------//
 
-fn open(args: FileArgs) -> Result<()> {
+pub fn open(args: InteractiveArgs) -> Result<()> {
     let file_contents = fs::read_to_string(args.path.clone())?;
-    let mut graph: UndirectedGraph<String> = serde_yaml::from_str(&file_contents)?;
+    let mut graph: DirectedGraph<String> = serde_yaml::from_str(&file_contents)?;
 
-    match args.command {
-        cli::FileCommands::List => list(&graph),
-        cli::FileCommands::Add(args) => add(args, &mut graph),
-        cli::FileCommands::Remove(args) => remove(args, &mut graph),
-        cli::FileCommands::Connect(args) => connect(args, &mut graph),
-        cli::FileCommands::Disconnect(args) => disconnect(args, &mut graph),
-        cli::FileCommands::Inspect(args) => inspect(args, &graph),
-        cli::FileCommands::BFS(args) => bfs(args, &graph),
-        cli::FileCommands::DFS => dfs(&graph),
-        cli::FileCommands::TopologicalSort => topo_sort(&graph),
-    }?;
+    interactive(&mut graph)?;
 
     fs::write(args.path, serde_yaml::to_string(&graph)?)?;
 
@@ -82,7 +71,86 @@ fn open(args: FileArgs) -> Result<()> {
 //---------------------------------------------------------------------------//
 
 fn example(args: ExampleArgs) -> Result<()> {
-    todo!()
+    println!("Opening in-memory example graph");
+    println!();
+
+    match args.example {
+        cli::Example::Pathfinding => {
+            let mut graph = UndirectedGraph::new();
+            graph.insert_node("bellingham".to_owned(), vec![]);
+            graph.insert_node("seattle".to_owned(), vec![]);
+            graph.insert_node("everett".to_owned(), vec![]);
+            graph.insert_node("arlington".to_owned(), vec![]);
+            graph.insert_node("mt-vernon".to_owned(), vec![]);
+            graph.insert_node("ferndale".to_owned(), vec![]);
+            graph.insert_node("anacortes".to_owned(), vec![]);
+            graph.insert_node("edmonds".to_owned(), vec![]);
+            graph.insert_node("redmond".to_owned(), vec![]);
+            graph.insert_node("seatac".to_owned(), vec![]);
+            graph.insert_node("tacoma".to_owned(), vec![]);
+            graph.insert_node("vancouver".to_owned(), vec![]);
+            graph.insert_node("bothell".to_owned(), vec![]);
+
+            graph.insert_edge("mt-vernon".to_owned(), "bellingham".to_owned());
+            graph.insert_edge("bellingham".to_owned(), "ferndale".to_owned());
+            graph.insert_edge("vancouver".to_owned(), "ferndale".to_owned());
+            graph.insert_edge("mt-vernon".to_owned(), "anacortes".to_owned());
+            graph.insert_edge("mt-vernon".to_owned(), "arlington".to_owned());
+            graph.insert_edge("arlington".to_owned(), "everett".to_owned());
+            graph.insert_edge("everett".to_owned(), "edmonds".to_owned());
+            graph.insert_edge("everett".to_owned(), "bothell".to_owned());
+            graph.insert_edge("edmonds".to_owned(), "bothell".to_owned());
+            graph.insert_edge("edmonds".to_owned(), "seattle".to_owned());
+            graph.insert_edge("bothell".to_owned(), "seattle".to_owned());
+            graph.insert_edge("bothell".to_owned(), "redmond".to_owned());
+            graph.insert_edge("seattle".to_owned(), "seatac".to_owned());
+            graph.insert_edge("seatac".to_owned(), "tacoma".to_owned());
+
+            println!("Try using the `route` command");
+            println!("For example: `route Bellingham Redmond`");
+
+            println!();
+
+            let mut graph = DirectedGraph::from(graph);
+
+            interactive(&mut graph)?;
+
+            Ok(())
+        }
+        cli::Example::JobScheduling => {
+            let mut graph = DirectedGraph::new();
+            graph.insert_node("task-1".to_owned(), vec![]);
+            graph.insert_node("task-2".to_owned(), vec![]);
+            graph.insert_node("task-3".to_owned(), vec![]);
+            graph.insert_node("task-4".to_owned(), vec![]);
+            graph.insert_node("task-5".to_owned(), vec![]);
+            graph.insert_node("task-6".to_owned(), vec![]);
+            graph.insert_node("task-7".to_owned(), vec![]);
+            graph.insert_node("task-8".to_owned(), vec![]);
+            graph.insert_node("task-9".to_owned(), vec![]);
+            graph.insert_node("task-10".to_owned(), vec![]);
+
+            graph.insert_edge("task-1".to_owned(), "task-2".to_owned());
+            graph.insert_edge("task-1".to_owned(), "task-3".to_owned());
+            graph.insert_edge("task-1".to_owned(), "task-4".to_owned());
+
+            graph.insert_edge("task-2".to_owned(), "task-5".to_owned());
+            graph.insert_edge("task-2".to_owned(), "task-6".to_owned());
+
+            graph.insert_edge("task-3".to_owned(), "task-7".to_owned());
+
+            graph.insert_edge("task-7".to_owned(), "task-9".to_owned());
+            graph.insert_edge("task-7".to_owned(), "task-10".to_owned());
+            graph.insert_edge("task-6".to_owned(), "task-8".to_owned());
+
+            println!("Try using the `schedule` command");
+            println!();
+
+            interactive(&mut graph)?;
+
+            Ok(())
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -101,73 +169,6 @@ fn gui() {
         Box::new(|cc| Box::new(App::new(cc))),
     )
     .expect("Failed to run eframe");
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-fn list(graph: &UndirectedGraph<String>) -> Result<()> {
-    let mut nodes = graph.get_all();
-    nodes.sort();
-
-    for node in nodes {
-        println!("- {}", node);
-    }
-
-    Ok(())
-}
-
-fn add(args: NodeArgs, graph: &mut UndirectedGraph<String>) -> Result<()> {
-    graph.insert_node(args.node, vec![]);
-    Ok(())
-}
-
-fn remove(args: NodeArgs, graph: &mut UndirectedGraph<String>) -> Result<()> {
-    graph.remove_node(args.node);
-    Ok(())
-}
-
-fn connect(args: EdgeArgs, graph: &mut UndirectedGraph<String>) -> Result<()> {
-    graph.insert_edge(args.from, args.to);
-    Ok(())
-}
-
-fn disconnect(args: EdgeArgs, graph: &mut UndirectedGraph<String>) -> Result<()> {
-    graph.remove_edge(args.from, args.to);
-    Ok(())
-}
-
-fn inspect(args: NodeArgs, graph: &UndirectedGraph<String>) -> Result<()> {
-    println!("{}", args.node);
-    for node in graph.get_adj(&args.node) {
-        println!("    - {}", node);
-    }
-    Ok(())
-}
-
-fn bfs(args: NodeArgs, graph: &UndirectedGraph<String>) -> Result<()> {
-    let mapping = breadth_first_search(graph.clone(), args.node.clone());
-    let mut mapping: Vec<(&String, &Vec<String>)> = mapping.iter().collect();
-
-    mapping.sort_by_key(|(_, path)| path.len());
-
-    for (node, path) in mapping {
-        if node != &args.node {
-            for node in path {
-                print!("{} -> ", node);
-            }
-            println!("{}", node);
-        }
-    }
-
-    Ok(())
-}
-
-fn dfs(graph: &UndirectedGraph<String>) -> Result<()> {
-    todo!()
-}
-
-fn topo_sort(graph: &UndirectedGraph<String>) -> Result<()> {
-    todo!()
 }
 
 ///////////////////////////////////////////////////////////////////////////////

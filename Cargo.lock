@@ -939,8 +939,8 @@ dependencies = [
 
 [[package]]
 name = "cs-240-library"
-version = "0.1.1"
-source = "git+https://github.com/thefireflyer/cs-240-library.git#b8bfb10ced782744841c35b496c6f33a7bc31f8e"
+version = "0.1.4"
+source = "git+https://github.com/thefireflyer/cs-240-library.git#2b42359d1a1e98687c495142a166104b0b47111a"
 dependencies = [
  "anyhow",
  "proptest",
@@ -1920,7 +1920,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2caa5afb8bf9f3a2652760ce7d4f62d21c4d5a423e68466fca30df82f2330164"
 dependencies = [
  "cfg-if",
- "windows-targets 0.52.4",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]

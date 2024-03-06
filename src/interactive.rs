@@ -8,13 +8,24 @@ use std::{
 
 use crate::cli::InteractiveArgs;
 use anyhow::{Error, Ok, Result};
+use clap::builder::Str;
 use cs_240_library::data_structures::graphs::{
-    breadth_first_search, undirected_graph::UndirectedGraph, Graph, GraphMut,
+    breadth_first_search, depth_first_search, directed_graph::DirectedGraph,
+    undirected_graph::UndirectedGraph, Graph, GraphMut,
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+///
+/// Todo:
+/// - [ ] handle cases where connecting node doesn't exist
+/// - [ ] switch over to DAG or eval on the fly
+/// - [ ] impl topo sort
+///
+///
+///////////////////////////////////////////////////////////////////////////////
 
-type StrGraph = UndirectedGraph<String>;
+pub type StrGraph = DirectedGraph<String>;
+
 type Callback = fn(&mut StrGraph, Vec<String>, &BTreeMap<String, Action>) -> Result<bool>;
 
 struct Action {
@@ -111,10 +122,7 @@ fn build_actions() -> BTreeMap<String, Action> {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-pub fn interactive(args: InteractiveArgs) -> Result<()> {
-    let file_contents = fs::read_to_string(args.path.clone())?;
-    let mut graph: UndirectedGraph<String> = serde_yaml::from_str(&file_contents)?;
-
+pub fn interactive(graph: &mut StrGraph) -> Result<()> {
     let mut running = true;
     let mut input = String::new();
 
@@ -126,7 +134,7 @@ pub fn interactive(args: InteractiveArgs) -> Result<()> {
         print!("> ");
         io::stdout().flush()?;
         match io::stdin().read_line(&mut input) {
-            std::result::Result::Ok(_) => match handle_input(&input, &mut graph, &actions) {
+            std::result::Result::Ok(_) => match handle_input(&input, graph, &actions) {
                 std::result::Result::Ok(res) => running = res,
                 Err(err) => println!("{}", err),
             },
@@ -135,8 +143,6 @@ pub fn interactive(args: InteractiveArgs) -> Result<()> {
         input.clear();
         println!();
     }
-
-    fs::write(args.path, serde_yaml::to_string(&graph)?)?;
 
     Ok(())
 }
@@ -265,6 +271,7 @@ fn route(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>) 
         for item in path {
             println!("- {}", item);
         }
+        println!("- {}", to);
     } else {
         println!("Couldn't reach {} from {}", to, from);
     }
@@ -273,14 +280,23 @@ fn route(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>) 
 }
 
 fn schedule(graph: &mut StrGraph, _: Vec<String>, _: &BTreeMap<String, Action>) -> Result<bool> {
-    todo!()
+    let (_, order, cyclic) = depth_first_search(graph.clone());
+
+    if cyclic {
+        Err(Error::msg("Unable to sort cyclical graph"))
+    } else {
+        for node in order {
+            print!(" -> {}", node);
+        }
+        println!();
+        Ok(true)
+    }
 }
 
 fn help(graph: &mut StrGraph, _: Vec<String>, actions: &BTreeMap<String, Action>) -> Result<bool> {
     for (name, action) in actions {
         println!("- {} {}", name, action.pattern);
         println!("    {}", action.desc);
-        println!()
     }
 
     Ok(true)

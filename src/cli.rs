@@ -21,8 +21,7 @@ pub struct Config {
 #[derive(Subcommand)]
 pub enum Commands {
     New(NewArgs),
-    Open(FileArgs),
-    OpenInteractive(InteractiveArgs),
+    Open(InteractiveArgs),
     Example(ExampleArgs),
     Gui,
 }
@@ -51,57 +50,12 @@ pub enum Example {
     JobScheduling,
 }
 
-//---------------------------------------------------------------------------//
-
-#[derive(Args)]
-pub struct FileArgs {
-    #[arg(short, long)]
-    pub path: PathBuf,
-
-    #[command(subcommand)]
-    pub command: FileCommands,
-}
-
 //...........................................................................//
 
 #[derive(Args)]
 pub struct InteractiveArgs {
     #[arg(short, long)]
     pub path: PathBuf,
-}
-
-//...........................................................................//
-
-#[derive(Subcommand)]
-pub enum FileCommands {
-    List,
-    Add(NodeArgs),
-    Remove(NodeArgs),
-    Connect(EdgeArgs),
-    Disconnect(EdgeArgs),
-    Inspect(NodeArgs),
-    BFS(NodeArgs),
-    DFS,
-    TopologicalSort,
-}
-
-//...........................................................................//
-
-#[derive(Args)]
-pub struct NodeArgs {
-    #[arg(short, long)]
-    pub node: String,
-}
-
-//...........................................................................//
-
-#[derive(Args)]
-pub struct EdgeArgs {
-    #[arg(short, long)]
-    pub from: String,
-
-    #[arg(short, long)]
-    pub to: String,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
