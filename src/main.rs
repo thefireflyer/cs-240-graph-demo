@@ -1,21 +1,15 @@
 ///////////////////////////////////////////////////////////////////////////////
 
-use std::{
-    fs,
-    io::{self, Stdin, Write},
-    path::PathBuf,
-};
+use std::fs;
 
 use anyhow::Result;
-use app::App;
-use clap::{Args, Parser, Subcommand};
+use clap::Parser;
 use cli::{Config, ExampleArgs, InteractiveArgs, NewArgs};
 use cs_240_library::data_structures::graphs::{
-    breadth_first_search, directed_graph::DirectedGraph, undirected_graph::UndirectedGraph, Graph,
-    GraphMut,
+    directed_graph::DirectedGraph, undirected_graph::UndirectedGraph, GraphMut,
 };
 
-use interactive::{interactive, StrGraph};
+use interactive::interactive;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -33,7 +27,7 @@ fn main() -> Result<()> {
     match args.command {
         cli::Commands::New(args) => new(args),
         cli::Commands::Example(args) => example(args),
-        cli::Commands::Gui => Ok(gui()),
+        cli::Commands::Gui => Ok(()),
         cli::Commands::Open(args) => open(args),
     }
 }
@@ -154,7 +148,7 @@ fn example(args: ExampleArgs) -> Result<()> {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
+/*
 fn gui() {
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
@@ -170,5 +164,5 @@ fn gui() {
     )
     .expect("Failed to run eframe");
 }
-
+*/
 ///////////////////////////////////////////////////////////////////////////////

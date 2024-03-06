@@ -1,17 +1,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 use std::{
-    collections::{BTreeMap, BinaryHeap, HashMap},
-    fs,
+    collections::{BTreeMap, BinaryHeap},
     io::{self, Write},
 };
 
-use crate::cli::InteractiveArgs;
 use anyhow::{Error, Ok, Result};
-use clap::builder::Str;
 use cs_240_library::data_structures::graphs::{
-    breadth_first_search, depth_first_search, directed_graph::DirectedGraph,
-    undirected_graph::UndirectedGraph, Graph, GraphMut,
+    breadth_first_search, depth_first_search, directed_graph::DirectedGraph, Graph, GraphMut,
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -314,7 +310,7 @@ fn schedule(graph: &mut StrGraph, _: Vec<String>, _: &BTreeMap<String, Action>) 
 
 //---------------------------------------------------------------------------//
 
-fn help(graph: &mut StrGraph, _: Vec<String>, actions: &BTreeMap<String, Action>) -> Result<bool> {
+fn help(_: &mut StrGraph, _: Vec<String>, actions: &BTreeMap<String, Action>) -> Result<bool> {
     for (name, action) in actions {
         println!("- {} {}", name, action.pattern);
         println!("    {}", action.desc);
@@ -325,7 +321,7 @@ fn help(graph: &mut StrGraph, _: Vec<String>, actions: &BTreeMap<String, Action>
 
 //---------------------------------------------------------------------------//
 
-fn quit(graph: &mut StrGraph, _: Vec<String>, _: &BTreeMap<String, Action>) -> Result<bool> {
+fn quit(_: &mut StrGraph, _: Vec<String>, _: &BTreeMap<String, Action>) -> Result<bool> {
     Ok(false)
 }
 
