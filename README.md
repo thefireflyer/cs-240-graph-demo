@@ -1,4 +1,4 @@
-# Code library 
+# CS240 | Graph Demos 
 
 | | |
 |-|-|
