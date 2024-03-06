@@ -15,6 +15,12 @@
 - [CLI definitions](src/cli.rs)
 - [Source code for interactive mode](src/interactive.rs)
 
+## Why BFS and DFS
+
+Breadth-first-search is great for path finding on unweighted graphs because it searches layer by layer, meaning it will naturally come to the shortest path first. I wrote a very quick path-finding demo you can try with `cargo run example pathfinding` and then writing `route Bellingham Seattle` or something similar. Though, the paths are not weighted by actual distance and might not make a ton of sense irl.
+
+Conversely, depth-first-search is great for scheduling problems. DFS descends as deep as possible in a given sub-tree before processing other paths. This means when it does finally finish processing a node, all of its children have already been fully explored. That sounds just like a scheduling problem! One may want to install a note-taking app, but the note-taking app needs postgres and a networking library. So, before we can even start working on the actual app, we need to build it's dependencies, *it's children*. Again, its DFS all over again. I didn't really have time to write an interesting demo, but `cargo run example job-scheduling` demos the core idea.
+
 ## Usage
 
 ```
