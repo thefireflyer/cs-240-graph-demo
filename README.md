@@ -7,6 +7,7 @@
 | Class | CS240 2963 |
 | Professor | Darrell Criss |
 
+[![Rust](https://github.com/thefireflyer/cs-240-graph-demo/actions/workflows/rust.yml/badge.svg)](https://github.com/thefireflyer/cs-240-graph-demo/actions/workflows/rust.yml)
 
 ## Organization
 
