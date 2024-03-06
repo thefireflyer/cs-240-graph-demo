@@ -15,24 +15,21 @@ use cs_240_library::data_structures::graphs::{
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-///
-/// Todo:
-/// - [ ] handle cases where connecting node doesn't exist
-/// - [ ] switch over to DAG or eval on the fly
-/// - [ ] impl topo sort
-///
-///
-///////////////////////////////////////////////////////////////////////////////
 
 pub type StrGraph = DirectedGraph<String>;
 
+//---------------------------------------------------------------------------//
+
 type Callback = fn(&mut StrGraph, Vec<String>, &BTreeMap<String, Action>) -> Result<bool>;
 
+///////////////////////////////////////////////////////////////////////////////
 struct Action {
     desc: String,
     callback: Callback,
     pattern: String,
 }
+
+//---------------------------------------------------------------------------//
 
 fn action(desc: &str, cb: Callback, pt: &str) -> Action {
     Action {
@@ -41,6 +38,8 @@ fn action(desc: &str, cb: Callback, pt: &str) -> Action {
         pattern: pt.to_owned(),
     }
 }
+
+//---------------------------------------------------------------------------//
 
 fn add_action(
     actions: &mut BTreeMap<String, Action>,
@@ -147,6 +146,8 @@ pub fn interactive(graph: &mut StrGraph) -> Result<()> {
     Ok(())
 }
 
+//---------------------------------------------------------------------------//
+
 fn handle_input(
     input: &str,
     graph: &mut StrGraph,
@@ -171,6 +172,8 @@ fn handle_input(
 fn normalize(input: &str) -> String {
     input.to_owned().trim().to_lowercase()
 }
+
+//---------------------------------------------------------------------------//
 
 fn find_similar(input: &str, actions: &BTreeMap<String, Action>) {
     let mut suggestions = BinaryHeap::with_capacity(actions.len());
@@ -200,6 +203,8 @@ fn list(graph: &mut StrGraph, _: Vec<String>, _: &BTreeMap<String, Action>) -> R
     Ok(true)
 }
 
+//---------------------------------------------------------------------------//
+
 fn add(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>) -> Result<bool> {
     let node = args.get(1).ok_or(Error::msg("Missing <node> argument"))?;
 
@@ -207,6 +212,8 @@ fn add(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>) ->
 
     Ok(true)
 }
+
+//---------------------------------------------------------------------------//
 
 fn remove(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>) -> Result<bool> {
     let node = args.get(1).ok_or(Error::msg("Missing <node> argument"))?;
@@ -216,6 +223,8 @@ fn remove(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>)
     Ok(true)
 }
 
+//---------------------------------------------------------------------------//
+
 fn connect(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>) -> Result<bool> {
     let from = args.get(1).ok_or(Error::msg("Missing <from> argument"))?;
     let to = args.get(2).ok_or(Error::msg("Missing <to> argument"))?;
@@ -224,6 +233,8 @@ fn connect(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>
 
     Ok(true)
 }
+
+//---------------------------------------------------------------------------//
 
 fn disconnect(
     graph: &mut StrGraph,
@@ -238,6 +249,8 @@ fn disconnect(
     Ok(true)
 }
 
+//---------------------------------------------------------------------------//
+
 fn filter(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>) -> Result<bool> {
     let filter = args.get(1).ok_or(Error::msg("Missing <filter> argument"))?;
 
@@ -250,6 +263,8 @@ fn filter(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>)
     Ok(true)
 }
 
+//---------------------------------------------------------------------------//
+
 fn inspect(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>) -> Result<bool> {
     let node = args.get(1).ok_or(Error::msg("Missing <node> argument"))?;
 
@@ -260,6 +275,8 @@ fn inspect(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>
 
     Ok(true)
 }
+
+//---------------------------------------------------------------------------//
 
 fn route(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>) -> Result<bool> {
     let from = args.get(1).ok_or(Error::msg("Missing <from> argument"))?;
@@ -279,6 +296,8 @@ fn route(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>) 
     Ok(true)
 }
 
+//---------------------------------------------------------------------------//
+
 fn schedule(graph: &mut StrGraph, _: Vec<String>, _: &BTreeMap<String, Action>) -> Result<bool> {
     let (_, order, cyclic) = depth_first_search(graph.clone());
 
@@ -293,6 +312,8 @@ fn schedule(graph: &mut StrGraph, _: Vec<String>, _: &BTreeMap<String, Action>) 
     }
 }
 
+//---------------------------------------------------------------------------//
+
 fn help(graph: &mut StrGraph, _: Vec<String>, actions: &BTreeMap<String, Action>) -> Result<bool> {
     for (name, action) in actions {
         println!("- {} {}", name, action.pattern);
@@ -301,6 +322,8 @@ fn help(graph: &mut StrGraph, _: Vec<String>, actions: &BTreeMap<String, Action>
 
     Ok(true)
 }
+
+//---------------------------------------------------------------------------//
 
 fn quit(graph: &mut StrGraph, _: Vec<String>, _: &BTreeMap<String, Action>) -> Result<bool> {
     Ok(false)
