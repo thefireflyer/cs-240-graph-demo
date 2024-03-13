@@ -6,8 +6,11 @@ use std::{
 };
 
 use anyhow::{Error, Ok, Result};
-use cs_240_library::data_structures::graphs::{
-    breadth_first_search, depth_first_search, directed_graph::DirectedGraph, Graph, GraphMut,
+use cs_240_library::{
+    algorithms::graphs::{bfs::breadth_first_search, dfs::depth_first_search},
+    data_structures::graphs::{
+        directed_graph::DirectedGraph, IDefiniteGraph, IGraph, IGraphEdgeMut, IGraphMut,
+    },
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -204,7 +207,7 @@ fn list(graph: &mut StrGraph, _: Vec<String>, _: &BTreeMap<String, Action>) -> R
 fn add(graph: &mut StrGraph, args: Vec<String>, _: &BTreeMap<String, Action>) -> Result<bool> {
     let node = args.get(1).ok_or(Error::msg("Missing <node> argument"))?;
 
-    graph.insert_node(node.to_string(), vec![]);
+    graph.insert_node(node.to_string());
 
     Ok(true)
 }

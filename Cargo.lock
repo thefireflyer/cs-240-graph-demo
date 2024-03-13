@@ -939,14 +939,15 @@ dependencies = [
 
 [[package]]
 name = "cs-240-library"
-version = "0.1.4"
-source = "git+https://github.com/thefireflyer/cs-240-library.git#2b42359d1a1e98687c495142a166104b0b47111a"
+version = "0.1.7"
+source = "git+https://github.com/thefireflyer/cs-240-library.git#fcb6cec4a282131cee2eff42302168568755cd2c"
 dependencies = [
  "anyhow",
  "proptest",
  "prusti-contracts",
  "ron",
  "serde",
+ "serde_yaml",
  "tailcall",
 ]
 

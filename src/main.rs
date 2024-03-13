@@ -6,15 +6,17 @@ use anyhow::Result;
 use clap::Parser;
 use cli::{Config, ExampleArgs, InteractiveArgs, NewArgs};
 use cs_240_library::data_structures::graphs::{
-    directed_graph::DirectedGraph, undirected_graph::UndirectedGraph, GraphMut,
+    directed_graph::DirectedGraph, undirected_graph::UndirectedGraph, IGraph, IGraphEdgeMut,
+    IGraphMut,
 };
 
+use gui::App;
 use interactive::interactive;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-mod app;
 mod cli;
+mod gui;
 mod interactive;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -27,7 +29,7 @@ fn main() -> Result<()> {
     match args.command {
         cli::Commands::New(args) => new(args),
         cli::Commands::Example(args) => example(args),
-        cli::Commands::Gui => Ok(()),
+        cli::Commands::Gui => Ok(gui()),
         cli::Commands::Open(args) => open(args),
     }
 }
@@ -37,9 +39,9 @@ fn main() -> Result<()> {
 fn new(args: NewArgs) -> Result<()> {
     let mut graph = DirectedGraph::new();
 
-    graph.insert_node("node-1", vec![]);
-    graph.insert_node("node-2", vec![]);
-    graph.insert_node("node-3", vec![]);
+    graph.insert_node("node-1");
+    graph.insert_node("node-2");
+    graph.insert_node("node-3");
 
     graph.insert_edge("node-1", "node-2");
     graph.insert_edge("node-1", "node-3");
@@ -71,19 +73,19 @@ fn example(args: ExampleArgs) -> Result<()> {
     match args.example {
         cli::Example::Pathfinding => {
             let mut graph = UndirectedGraph::new();
-            graph.insert_node("bellingham".to_owned(), vec![]);
-            graph.insert_node("seattle".to_owned(), vec![]);
-            graph.insert_node("everett".to_owned(), vec![]);
-            graph.insert_node("arlington".to_owned(), vec![]);
-            graph.insert_node("mt-vernon".to_owned(), vec![]);
-            graph.insert_node("ferndale".to_owned(), vec![]);
-            graph.insert_node("anacortes".to_owned(), vec![]);
-            graph.insert_node("edmonds".to_owned(), vec![]);
-            graph.insert_node("redmond".to_owned(), vec![]);
-            graph.insert_node("seatac".to_owned(), vec![]);
-            graph.insert_node("tacoma".to_owned(), vec![]);
-            graph.insert_node("vancouver".to_owned(), vec![]);
-            graph.insert_node("bothell".to_owned(), vec![]);
+            graph.insert_node("bellingham".to_owned());
+            graph.insert_node("seattle".to_owned());
+            graph.insert_node("everett".to_owned());
+            graph.insert_node("arlington".to_owned());
+            graph.insert_node("mt-vernon".to_owned());
+            graph.insert_node("ferndale".to_owned());
+            graph.insert_node("anacortes".to_owned());
+            graph.insert_node("edmonds".to_owned());
+            graph.insert_node("redmond".to_owned());
+            graph.insert_node("seatac".to_owned());
+            graph.insert_node("tacoma".to_owned());
+            graph.insert_node("vancouver".to_owned());
+            graph.insert_node("bothell".to_owned());
 
             graph.insert_edge("mt-vernon".to_owned(), "bellingham".to_owned());
             graph.insert_edge("bellingham".to_owned(), "ferndale".to_owned());
@@ -113,16 +115,16 @@ fn example(args: ExampleArgs) -> Result<()> {
         }
         cli::Example::JobScheduling => {
             let mut graph = DirectedGraph::new();
-            graph.insert_node("task-1".to_owned(), vec![]);
-            graph.insert_node("task-2".to_owned(), vec![]);
-            graph.insert_node("task-3".to_owned(), vec![]);
-            graph.insert_node("task-4".to_owned(), vec![]);
-            graph.insert_node("task-5".to_owned(), vec![]);
-            graph.insert_node("task-6".to_owned(), vec![]);
-            graph.insert_node("task-7".to_owned(), vec![]);
-            graph.insert_node("task-8".to_owned(), vec![]);
-            graph.insert_node("task-9".to_owned(), vec![]);
-            graph.insert_node("task-10".to_owned(), vec![]);
+            graph.insert_node("task-1".to_owned());
+            graph.insert_node("task-2".to_owned());
+            graph.insert_node("task-3".to_owned());
+            graph.insert_node("task-4".to_owned());
+            graph.insert_node("task-5".to_owned());
+            graph.insert_node("task-6".to_owned());
+            graph.insert_node("task-7".to_owned());
+            graph.insert_node("task-8".to_owned());
+            graph.insert_node("task-9".to_owned());
+            graph.insert_node("task-10".to_owned());
 
             graph.insert_edge("task-1".to_owned(), "task-2".to_owned());
             graph.insert_edge("task-1".to_owned(), "task-3".to_owned());
@@ -148,7 +150,7 @@ fn example(args: ExampleArgs) -> Result<()> {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/*
+
 fn gui() {
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
@@ -164,5 +166,5 @@ fn gui() {
     )
     .expect("Failed to run eframe");
 }
-*/
+
 ///////////////////////////////////////////////////////////////////////////////
